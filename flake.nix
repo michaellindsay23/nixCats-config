@@ -43,7 +43,7 @@
   # see :help nixCats.flake.outputs
   outputs = { self, nixpkgs, nixCats, ... }@inputs: let
     inherit (nixCats) utils;
-    luaPath = ./.;
+    luaPath = ./lua;
     forEachSystem = utils.eachSystem nixpkgs.lib.platforms.all;
     # the following extra_pkg_config contains any values
     # which you want to pass to the config set of nixpkgs
@@ -94,13 +94,77 @@
       # this includes LSPs
       lspsAndRuntimeDeps = {
         general = with pkgs; [
+         universal-ctags
+          curl
+          # NOTE:
+          # lazygit
+          # Apparently lazygit when launched via snacks cant create its own config file
+          # but we can add one from nix!
+          (pkgs.writeShellScriptBin "lazygit" ''
+            exec ${pkgs.lazygit}/bin/lazygit --use-config-file ${pkgs.writeText "lazygit_config.yml" ""} "$@"
+          '')
+          ripgrep
+          fd
+          stdenv.cc.cc
+          lua-language-server
+          nil # I would go for nixd but lazy chooses this one idk
+          stylua
         ];
       };
 
       # This is for plugins that will load at startup without using packadd:
       startupPlugins = {
         gitPlugins = with pkgs.neovimPlugins; [ ];
-        general = with pkgs.vimPlugins; [ ];
+        general = with pkgs.vimPlugins; [
+          # LazyVim
+          lazy-nvim
+          LazyVim
+          bufferline-nvim
+          lazydev-nvim
+          conform-nvim
+          flash-nvim
+          friendly-snippets
+          gitsigns-nvim
+          grug-far-nvim
+          noice-nvim
+          lualine-nvim
+          nui-nvim
+          nvim-lint
+          nvim-lspconfig
+          nvim-treesitter-textobjects
+          nvim-ts-autotag
+          ts-comments-nvim
+          blink-cmp
+          nvim-web-devicons
+          persistence-nvim
+          plenary-nvim
+          telescope-fzf-native-nvim
+          telescope-nvim
+          todo-comments-nvim
+          tokyonight-nvim
+          trouble-nvim
+          vim-illuminate
+          vim-startuptime
+          which-key-nvim
+          snacks-nvim
+          nvim-treesitter-textobjects
+          nvim-treesitter.withAllGrammars
+          # This is for if you only want some of the grammars
+          # (nvim-treesitter.withPlugins (
+          #   plugins: with plugins; [
+          #     nix
+          #     lua
+          #   ]
+          # ))
+
+          # sometimes you have to fix some names
+          { plugin = catppuccin-nvim; name = "catppuccin"; }
+          { plugin = mini-ai; name = "mini.ai"; }
+          { plugin = mini-icons; name = "mini.icons"; }
+          { plugin = mini-pairs; name = "mini.pairs"; }
+          # you could do this within the lazy spec instead if you wanted
+          # and get the new names from `:NixCats pawsible` debug command
+	];
       };
 
       # not loaded automatically at startup.
